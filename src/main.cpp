@@ -1,0 +1,33 @@
+#include "epaper.h"
+#include "esp_log.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "driver/timer.h"
+
+#define COLORED     0
+#define UNCOLORED   1
+
+extern "C" void app_main() 
+{
+  Epd epd;
+
+  unsigned char* frame_ = (unsigned char*)malloc(epd.width * epd.height / 8);
+
+  Paint paint_(frame_, epd.width, epd.height);
+  paint_.Clear(UNCOLORED);
+
+  ESP_LOGI("EPD", "e-Paper init and clear");
+  epd.LDirInit();
+  epd.Clear();
+
+  vTaskDelay(2000);
+  int d = 3;
+  for (char i = '0'; i <= '9'; i++)
+  {
+    paint_.DrawCharAt(d, d, i, &Font20, COLORED);
+    epd.DisplayPart(frame_);
+    vTaskDelay(100);
+    d = d + 20; 
+  }
+  epd.Sleep();
+}
